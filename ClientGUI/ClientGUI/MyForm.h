@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
-
+#include <WS2tcpip.h>
+#include <msclr\marshal_cppstd.h>
 
 namespace ClientGUI {
 
@@ -13,13 +14,18 @@ namespace ClientGUI {
 
 	using namespace std;
 
-	extern string userInput;
-
 	/// <summary>
 	/// Riepilogo per MyForm
 	/// </summary>
 	public ref class MyForm : public System::Windows::Forms::Form
 	{
+	private:
+		Timer^ MyTimer;
+
+	public:
+		String^ MyInput;
+		SOCKET MySock;
+
 	public:
 		MyForm(void)
 		{
@@ -27,6 +33,13 @@ namespace ClientGUI {
 			//
 			//TODO: aggiungere qui il codice del costruttore.
 			//
+
+			MySock = 0;
+
+			MyTimer = gcnew System::Windows::Forms::Timer();
+			MyTimer->Interval = 3000;
+			MyTimer->Tick += gcnew System::EventHandler(this, &MyForm::CallMe_OnTick);
+			MyTimer->Enabled = true;
 		}
 
 	protected:
@@ -111,15 +124,60 @@ namespace ClientGUI {
 
 		}
 #pragma endregion
-	public: String^ userInput;
 
-	private: System::Void MyForm_Load(System::Object^ sender, System::EventArgs^ e) {
-	}
-	private: System::Void label1_Click(System::Object^ sender, System::EventArgs^ e) {
-	}
-	private: System::Void button1_Click(System::Object^ sender, System::EventArgs^ e) {
-		userInput = textBox1->Text;
-		MessageBox::Show(userInput);
-	}
+	private: 
+		System::Void MyForm_Load(System::Object^ sender, System::EventArgs^ e)
+		{
+		}
+
+		System::Void label1_Click(System::Object^ sender, System::EventArgs^ e)
+		{
+		}
+
+		System::Void button1_Click(System::Object^ sender, System::EventArgs^ e) 
+		{
+			MyInput = textBox1->Text;
+			//MessageBox::Show(MyInput);
+		}
+
+		void CallMe_OnTick(System::Object^ sender, System::EventArgs^ e)
+		{
+			MyTimer->Interval = 1000;
+
+			if (MySock != 0 && String::IsNullOrEmpty(MyInput) == false)
+			{
+				char buf[4096];
+				string localInput;
+
+				//do
+				//{
+					msclr::interop::marshal_context context;
+					localInput = context.marshal_as<string>(MyInput);
+
+					textBox1->Text += MyInput;
+					textBox1->Text += " -> ";
+					MyInput = "";
+
+					if (localInput.size() > 0)		// Make sure the user has typed in something
+					{
+						// Send the text
+						int sendResult = send(MySock, localInput.c_str(), localInput.size() + 1, 0);
+						if (sendResult != SOCKET_ERROR)
+						{
+							// Wait for response
+							ZeroMemory(buf, 4096);
+							int bytesReceived = recv(MySock, buf, 4096, 0);
+							if (bytesReceived > 0)
+							{
+								// Echo response to console
+								//cout << "SERVER> " << string(buf, 0, bytesReceived) << endl;
+								textBox1->Text += bytesReceived;
+							}
+						}
+					}
+
+				//} while (localInput.size() > 0);
+			}
+		}
 	};
 }

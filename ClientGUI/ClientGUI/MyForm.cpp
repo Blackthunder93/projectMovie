@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <WS2tcpip.h>
+
 #pragma comment(lib, "ws2_32.lib")
 
 using namespace std;
@@ -53,37 +54,40 @@ void main() {
 	Application::SetCompatibleTextRenderingDefault(false);
 	Application::EnableVisualStyles();
 	ClientGUI::MyForm frm;
+	frm.MySock = sock;
 	Application::Run(% frm);
 	
-	// Do-while loop to send and receive data
-	char buf[4096];
-	string userInput;
-	//string userInput = frm.userInput;
-	//userInput = testo;
-	do
-	{
-		// Prompt the user for some text
-		cout << "> ";
-		getline(cin, userInput);
-
-		if (userInput.size() > 0)		// Make sure the user has typed in something
-		{
-			// Send the text
-			int sendResult = send(sock, userInput.c_str(), userInput.size() + 1, 0);
-			if (sendResult != SOCKET_ERROR)
+	/*
+			// Do-while loop to send and receive data
+			char buf[4096];
+			string userInput;
+			//string userInput = frm.userInput;
+			//userInput = testo;
+			do
 			{
-				// Wait for response
-				ZeroMemory(buf, 4096);
-				int bytesReceived = recv(sock, buf, 4096, 0);
-				if (bytesReceived > 0)
-				{
-					// Echo response to console
-					cout << "SERVER> " << string(buf, 0, bytesReceived) << endl;
-				}
-			}
-		}
+				// Prompt the user for some text
+				cout << "> ";
+				getline(cin, userInput);
 
-	} while (userInput.size() > 0);
+				if (userInput.size() > 0)		// Make sure the user has typed in something
+				{
+					// Send the text
+					int sendResult = send(sock, userInput.c_str(), userInput.size() + 1, 0);
+					if (sendResult != SOCKET_ERROR)
+					{
+						// Wait for response
+						ZeroMemory(buf, 4096);
+						int bytesReceived = recv(sock, buf, 4096, 0);
+						if (bytesReceived > 0)
+						{
+							// Echo response to console
+							cout << "SERVER> " << string(buf, 0, bytesReceived) << endl;
+						}
+					}
+				}
+
+			} while (userInput.size() > 0);
+	*/
 
 
 	// Gracefully close down everything
