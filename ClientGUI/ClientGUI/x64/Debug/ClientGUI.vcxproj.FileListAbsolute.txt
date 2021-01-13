@@ -1,0 +1,3 @@
+C:\Users\lukin\Desktop\ClientGUI\ClientGUI\x64\Debug\ClientGUI.vcxprojAssemblyReference.cache
+C:\Users\lukin\Desktop\ClientGUI\ClientGUI\x64\Debug\ClientGUI.MyForm.resources
+C:\Users\lukin\Desktop\ClientGUI\ClientGUI\x64\Debug\ClientGUI.vcxproj.GenerateResource.cache

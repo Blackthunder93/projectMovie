@@ -2,6 +2,7 @@
 #include <string>
 #include <WS2tcpip.h>
 #include <msclr\marshal_cppstd.h>
+#include <iostream>
 
 namespace ClientGUI {
 
@@ -24,6 +25,8 @@ namespace ClientGUI {
 
 	public:
 		String^ MyInput;
+
+	public:
 		SOCKET MySock;
 
 	public:
@@ -83,7 +86,7 @@ namespace ClientGUI {
 			this->label1->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8.25F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(0)));
 			this->label1->ForeColor = System::Drawing::SystemColors::ControlText;
-			this->label1->Location = System::Drawing::Point(48, 62);
+			this->label1->Location = System::Drawing::Point(57, 428);
 			this->label1->Name = L"label1";
 			this->label1->Size = System::Drawing::Size(127, 13);
 			this->label1->TabIndex = 0;
@@ -92,15 +95,15 @@ namespace ClientGUI {
 			// 
 			// textBox1
 			// 
-			this->textBox1->Location = System::Drawing::Point(190, 59);
+			this->textBox1->Location = System::Drawing::Point(190, 428);
 			this->textBox1->Multiline = true;
 			this->textBox1->Name = L"textBox1";
-			this->textBox1->Size = System::Drawing::Size(356, 85);
+			this->textBox1->Size = System::Drawing::Size(205, 45);
 			this->textBox1->TabIndex = 1;
 			// 
 			// button1
 			// 
-			this->button1->Location = System::Drawing::Point(190, 167);
+			this->button1->Location = System::Drawing::Point(190, 479);
 			this->button1->Name = L"button1";
 			this->button1->Size = System::Drawing::Size(75, 26);
 			this->button1->TabIndex = 2;
@@ -112,7 +115,7 @@ namespace ClientGUI {
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(670, 390);
+			this->ClientSize = System::Drawing::Size(670, 531);
 			this->Controls->Add(this->button1);
 			this->Controls->Add(this->textBox1);
 			this->Controls->Add(this->label1);
@@ -154,8 +157,7 @@ namespace ClientGUI {
 					msclr::interop::marshal_context context;
 					localInput = context.marshal_as<string>(MyInput);
 
-					textBox1->Text += MyInput;
-					textBox1->Text += " -> ";
+					textBox1->Text += "";
 					MyInput = "";
 
 					if (localInput.size() > 0)		// Make sure the user has typed in something
@@ -170,7 +172,7 @@ namespace ClientGUI {
 							if (bytesReceived > 0)
 							{
 								// Echo response to console
-								//cout << "SERVER> " << string(buf, 0, bytesReceived) << endl;
+								cout << "SERVER> " << string(buf, 0, bytesReceived) << endl;
 								textBox1->Text += bytesReceived;
 							}
 						}
@@ -179,5 +181,7 @@ namespace ClientGUI {
 				//} while (localInput.size() > 0);
 			}
 		}
-	};
+	private: System::Void label2_Click(System::Object^ sender, System::EventArgs^ e) {
+	}
+};
 }
