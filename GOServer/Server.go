@@ -1,11 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
-	"net/http"
+	"net"
+	"os"
 )
 
 type Users struct {
@@ -14,38 +17,67 @@ type Users struct {
 	LastName string `json:"Lastname"`
 }
 
-// Connection database and get rows
-func connectionDatabase(query string) (*sql.Rows) {
-	// Connection to database
-	db, err := sql.Open("mysql", "root@tcp(127.0.0.1:3306)/mycinema")
-	defer db.Close()
-	// if there is an error opening the connection, handle it
+const (
+	connHost = "localhost"
+	connPort = "8080"
+	connType = "tcp"
+	driverName = "mysql"
+	dataSourceName = "root@tcp(127.0.0.1:3306)/mycinema"
+)
+
+func main() {
+	fmt.Println("Start MAIN")
+	SocketServer()
+}
+
+// SocketServer
+func SocketServer() {
+	fmt.Println("Starting " + connType + " server on " + connHost + ":" + connPort)
+
+	listen, err := net.Listen(connType, connHost + ":" + connPort)
 	if err != nil {
-		panic(err.Error())
+		log.Fatalf("Socket listen port %d failed,%s", connPort, err)
+		os.Exit(1)
 	}
+
+	for {
+		conn, err := listen.Accept()
+		if err != nil {
+			log.Fatalln(err)
+			continue
+		}
+		go handler(conn)
+	}
+}
+
+// handler method
+func handler(conn net.Conn) {
+	defer conn.Close()
+
+	// Read data check
+	buf := make([]byte, 1024)
+	r   := bufio.NewReader(conn)
+	n, _ := r.Read(buf)
+	data := string(buf[:n])
+	log.Printf("Read: %s", data)
+
+	// Write data check
+	w := bufio.NewWriter(conn)
+	w.Write(getUsers())
+	w.Flush()
+	log.Printf("Write: %s", getUsers())
+}
+
+// Get All Users from database to json
+func getUsers() []byte {
+	// Connect to database and run query
+	db := connectionDatabase()
 	// Read data from database
-	read, err := db.Query(query)
-	defer read.Close()
+	read, err := db.Query("select * from utenti")
 	// if there is an error inserting, handle it
 	if err != nil {
 		panic(err.Error())
 	}
-	return read
-}
-
-func main() {
-	// Go to Api
-	http.HandleFunc("/api/v1/users", getUsers)
-	// If is present error
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		log.Fatal(err)
-	}
-}
-
-// Get All Users from database
-func getUsers(w http.ResponseWriter, r *http.Request) {
-	// Connect to database and run query
-	read := connectionDatabase("SELECT * FROM utenti")
 	// Create array var
 	usersArray := []Users{}
 	// Get multi row
@@ -54,19 +86,32 @@ func getUsers(w http.ResponseWriter, r *http.Request) {
 		err := read.Scan(&users.Id, &users.FirstName, &users.LastName)
 		// If is present error
 		if err != nil {
-			// Get error 500
-			w.WriteHeader(500)
+			panic(err.Error())
 		}
 		// Update array
 		usersArray = append(usersArray, users)
 	}
-	// Create Json
+
+	// Close db and read
+	read.Close()
+	db.Close()
+
+	// Transform array to json
 	respJson, err := json.Marshal(usersArray)
 	if err != nil {
-		// Get error 500
-		w.WriteHeader(500)
+		panic(err.Error())
 	}
-	// Write json and stamp
-	r.Header.Add("content-type","application/json")
-	w.Write(respJson)
+	// Return json []byte
+	return respJson
+}
+
+// Connection database and get rows
+func connectionDatabase() *sql.DB {
+	// Connection to database
+	db, err := sql.Open(driverName, dataSourceName)
+	// if there is an error opening the connection, handle it
+	if err != nil {
+		panic(err.Error())
+	}
+	return db
 }
