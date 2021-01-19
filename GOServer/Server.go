@@ -5,24 +5,25 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
 	"log"
 	"net"
 	"os"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
-type Users struct {
-	Id      int `json:"Id"`
-	FirstName    string `json:"Firstname"`
-	LastName string `json:"Lastname"`
+type Movie struct {
+	ID     int    `json:"ID"`
+	Titolo string `json:"Titolo"`
+	Durata string `json:"Durata"`
 }
 
 const (
-	connHost = "localhost"
-	connPort = "8080"
-	connType = "tcp"
-	driverName = "mysql"
-	dataSourceName = "root@tcp(127.0.0.1:3306)/mycinema"
+	connHost       = "localhost"
+	connPort       = "8080"
+	connType       = "tcp"
+	driverName     = "mysql"
+	dataSourceName = "root@tcp(127.0.0.1:3306)/test"
 )
 
 func main() {
@@ -34,7 +35,7 @@ func main() {
 func SocketServer() {
 	fmt.Println("Starting " + connType + " server on " + connHost + ":" + connPort)
 
-	listen, err := net.Listen(connType, connHost + ":" + connPort)
+	listen, err := net.Listen(connType, connHost+":"+connPort)
 	if err != nil {
 		log.Fatalf("Socket listen port %d failed,%s", connPort, err)
 		os.Exit(1)
@@ -56,40 +57,40 @@ func handler(conn net.Conn) {
 
 	// Read data check
 	buf := make([]byte, 1024)
-	r   := bufio.NewReader(conn)
+	r := bufio.NewReader(conn)
 	n, _ := r.Read(buf)
 	data := string(buf[:n])
 	log.Printf("Read: %s", data)
 
 	// Write data check
 	w := bufio.NewWriter(conn)
-	w.Write(getUsers())
+	w.Write(getMovie())
 	w.Flush()
-	log.Printf("Write: %s", getUsers())
+	log.Printf("Write: %s", getMovie())
 }
 
-// Get All Users from database to json
-func getUsers() []byte {
+// Get All Movies from database to json
+func getMovie() []byte {
 	// Connect to database and run query
 	db := connectionDatabase()
 	// Read data from database
-	read, err := db.Query("select * from utenti")
+	read, err := db.Query("select * from film")
 	// if there is an error inserting, handle it
 	if err != nil {
 		panic(err.Error())
 	}
 	// Create array var
-	usersArray := []Users{}
+	movieArray := []Movie{}
 	// Get multi row
 	for read.Next() {
-		var users Users
-		err := read.Scan(&users.Id, &users.FirstName, &users.LastName)
+		var movie Movie
+		err := read.Scan(&movie.ID, &movie.Titolo, &movie.Durata)
 		// If is present error
 		if err != nil {
 			panic(err.Error())
 		}
 		// Update array
-		usersArray = append(usersArray, users)
+		movieArray = append(movieArray, movie)
 	}
 
 	// Close db and read
@@ -97,12 +98,12 @@ func getUsers() []byte {
 	db.Close()
 
 	// Transform array to json
-	respJson, err := json.Marshal(usersArray)
+	respJSON, err := json.Marshal(movieArray)
 	if err != nil {
 		panic(err.Error())
 	}
 	// Return json []byte
-	return respJson
+	return respJSON
 }
 
 // Connection database and get rows
