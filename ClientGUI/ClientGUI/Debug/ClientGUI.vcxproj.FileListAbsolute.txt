@@ -1,0 +1,3 @@
+C:\Users\vinci\source\repos\ClientGUI\ClientGUI\Debug\ClientGUI.vcxprojAssemblyReference.cache
+C:\Users\vinci\source\repos\ClientGUI\ClientGUI\Debug\ClientGUI.MyForm.resources
+C:\Users\vinci\source\repos\ClientGUI\ClientGUI\Debug\ClientGUI.vcxproj.GenerateResource.cache

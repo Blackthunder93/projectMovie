@@ -1,8 +1,10 @@
 #pragma once
 #include <string>
 #include <WS2tcpip.h>
-#include <msclr\marshal_cppstd.h>
 #include <iostream>
+#include <msclr\marshal_cppstd.h>
+#include <typeinfo>
+#include <nlohmann\json.hpp>
 
 namespace ClientGUI {
 
@@ -12,8 +14,8 @@ namespace ClientGUI {
 	using namespace System::Windows::Forms;
 	using namespace System::Data;
 	using namespace System::Drawing;
-
 	using namespace std;
+	using json = nlohmann::json;
 
 	/// <summary>
 	/// Riepilogo per MyForm
@@ -24,7 +26,10 @@ namespace ClientGUI {
 		Timer^ MyTimer;
 
 	public:
+		String^ MyData;
 		String^ MyInput;
+	private: System::Windows::Forms::ComboBox^ comboBox1;
+	public:
 
 	public:
 		SOCKET MySock;
@@ -77,6 +82,7 @@ namespace ClientGUI {
 			this->label1 = (gcnew System::Windows::Forms::Label());
 			this->textBox1 = (gcnew System::Windows::Forms::TextBox());
 			this->button1 = (gcnew System::Windows::Forms::Button());
+			this->comboBox1 = (gcnew System::Windows::Forms::ComboBox());
 			this->SuspendLayout();
 			// 
 			// label1
@@ -86,7 +92,7 @@ namespace ClientGUI {
 			this->label1->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8.25F, System::Drawing::FontStyle::Bold, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(0)));
 			this->label1->ForeColor = System::Drawing::SystemColors::ControlText;
-			this->label1->Location = System::Drawing::Point(57, 428);
+			this->label1->Location = System::Drawing::Point(12, 635);
 			this->label1->Name = L"label1";
 			this->label1->Size = System::Drawing::Size(127, 13);
 			this->label1->TabIndex = 0;
@@ -95,15 +101,15 @@ namespace ClientGUI {
 			// 
 			// textBox1
 			// 
-			this->textBox1->Location = System::Drawing::Point(190, 428);
+			this->textBox1->Location = System::Drawing::Point(145, 585);
 			this->textBox1->Multiline = true;
 			this->textBox1->Name = L"textBox1";
-			this->textBox1->Size = System::Drawing::Size(205, 45);
+			this->textBox1->Size = System::Drawing::Size(611, 85);
 			this->textBox1->TabIndex = 1;
 			// 
 			// button1
 			// 
-			this->button1->Location = System::Drawing::Point(190, 479);
+			this->button1->Location = System::Drawing::Point(762, 628);
 			this->button1->Name = L"button1";
 			this->button1->Size = System::Drawing::Size(75, 26);
 			this->button1->TabIndex = 2;
@@ -111,11 +117,21 @@ namespace ClientGUI {
 			this->button1->UseVisualStyleBackColor = true;
 			this->button1->Click += gcnew System::EventHandler(this, &MyForm::button1_Click);
 			// 
+			// comboBox1
+			// 
+			this->comboBox1->FormattingEnabled = true;
+			this->comboBox1->Location = System::Drawing::Point(145, 104);
+			this->comboBox1->Name = L"comboBox1";
+			this->comboBox1->Size = System::Drawing::Size(121, 21);
+			this->comboBox1->TabIndex = 3;
+			this->comboBox1->SelectedIndexChanged += gcnew System::EventHandler(this, &MyForm::comboBox1_SelectedIndexChanged);
+			// 
 			// MyForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(670, 531);
+			this->ClientSize = System::Drawing::Size(849, 679);
+			this->Controls->Add(this->comboBox1);
 			this->Controls->Add(this->button1);
 			this->Controls->Add(this->textBox1);
 			this->Controls->Add(this->label1);
@@ -137,6 +153,33 @@ namespace ClientGUI {
 		{
 		}
 
+		private: System::Void comboBox1_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e) {
+			MyData = comboBox1->Text;
+			//comboBox1->Items->Add("");
+			// Wait for response
+		}
+
+			   /*void GetResponse(System::Object^ sender, System::EventArgs^ e) {
+				   if (MySock != 0 && String::IsNullOrEmpty(MyData) == false)
+				   {
+					   char buf[4096];
+					   //string localInput;
+					   msclr::interop::marshal_context context;
+					   //localInput = context.marshal_as<string>(MyData);
+
+					   // Response from server
+					   ZeroMemory(buf, 4096);
+					   int bytesReceived = recv(MySock, buf, 4096, 0);
+					   if (bytesReceived > 0)
+					   {
+						   // Echo response to console
+						   cout << "SERVER> " << string(buf, 0, bytesReceived) << endl;
+						   cout << "Movie:" << buf;
+						   comboBox1->Text += bytesReceived.ToString();
+					   }
+				   }
+		  }*/
+
 		System::Void button1_Click(System::Object^ sender, System::EventArgs^ e) 
 		{
 			MyInput = textBox1->Text;
@@ -151,13 +194,14 @@ namespace ClientGUI {
 			{
 				char buf[4096];
 				string localInput;
-
+				string data;
 				//do
 				//{
 					msclr::interop::marshal_context context;
 					localInput = context.marshal_as<string>(MyInput);
 
-					textBox1->Text += "";
+					textBox1->Text += MyInput;
+					textBox1->Text += " -> ";
 					MyInput = "";
 
 					if (localInput.size() > 0)		// Make sure the user has typed in something
@@ -172,8 +216,13 @@ namespace ClientGUI {
 							if (bytesReceived > 0)
 							{
 								// Echo response to console
-								cout << "SERVER> " << string(buf, 0, bytesReceived) << endl;
-								textBox1->Text += bytesReceived;
+								data = string(buf, 0, bytesReceived);
+								json dataJSON = json::parse(data);
+
+								cout << "SERVER> " << dataJSON[2] << endl;
+								//textBox1->Text += bytesReceived;
+								std::cout << typeid(dataJSON).name() << std::endl;
+								comboBox1->Items->Add(dataJSON);
 							}
 						}
 					}
@@ -181,7 +230,6 @@ namespace ClientGUI {
 				//} while (localInput.size() > 0);
 			}
 		}
-	private: System::Void label2_Click(System::Object^ sender, System::EventArgs^ e) {
-	}
+
 };
 }

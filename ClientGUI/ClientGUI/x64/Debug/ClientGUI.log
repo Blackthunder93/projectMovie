@@ -1,4 +1,4 @@
 ﻿  MyForm.cpp
-C:\Users\lukin\Desktop\ClientGUI\ClientGUI\MyForm.h(166,1): warning C4267: 'argomento': conversione da 'size_t' a 'int'. Possibile perdita di dati.
+C:\Users\vinci\source\repos\ClientGUI\ClientGUI\MyForm.h(210,1): warning C4267: 'argomento': conversione da 'size_t' a 'int'. Possibile perdita di dati.
   MyForm.obj : rilevato modulo MSIL; il collegamento incrementale è disabilitato per MSIL; verrà eseguito il collegamento completo
-  ClientGUI.vcxproj -> C:\Users\lukin\Desktop\ClientGUI\x64\Debug\ClientGUI.exe
+  ClientGUI.vcxproj -> C:\Users\vinci\source\repos\ClientGUI\x64\Debug\ClientGUI.exe
